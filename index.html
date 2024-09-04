@@ -1,188 +1,204 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Lightbulb, MessageSquare, PenTool, AlignJustify, BarChart2 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>דאשבורד ספירת טקסט מתקדם</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.1.9/Recharts.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { Card, CardContent, CardHeader, CardTitle, Alert, AlertTitle, AlertDescription, Button } = window.shadcn.ui;
+        const { Lightbulb, MessageSquare, PenTool, AlignJustify, BarChart2 } = window.lucide;
+        const { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } = window.Recharts;
 
-const TextStatsCard = ({ title, value, icon: Icon }) => (
-  <Card className="w-full transition-all duration-300 hover:shadow-lg hover:scale-105">
-    <CardHeader>
-      <CardTitle className="text-sm font-medium text-center flex items-center justify-center">
-        <Icon className="mr-2" size={18} />
-        {title}
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold text-center">{value}</div>
-    </CardContent>
-  </Card>
-);
+        const TextStatsCard = ({ title, value, icon: Icon }) => (
+            <Card className="w-full transition-all duration-300 hover:shadow-lg hover:scale-105">
+                <CardHeader>
+                    <CardTitle className="text-sm font-medium text-center flex items-center justify-center">
+                        <Icon className="mr-2" size={18} />
+                        {title}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold text-center">{value}</div>
+                </CardContent>
+            </Card>
+        );
 
-const funnyMessages = [
-  { start: "ספירת תווים", end: "היא כמו ספירת כבשים, רק שבמקום להירדם, אתה מתעורר לחלוטין!" },
-  { start: "האם ידעת?", end: "המילה 'תו' היא התו הכי קצר בעברית. איזו אירוניה!" },
-  { start: "ספירת תווים:", end: "כי לפעמים גם למילים יש דיאטה." },
-  { start: "תארו לכם עולם בלי ספירת תווים.", end: "טוב, זה בערך כמו לדמיין פיצה בלי גבינה." },
-  { start: "ספירת תווים", end: "היא כמו יוגה למוח שלך. רק בלי המכנסיים המצחיקים." },
-  { start: "למה סופרים תווים?", end: "כי אם היינו סופרים כוכבים, היינו מסיימים רק בשנת 3000." },
-  { start: "ספירת תווים:", end: "הדרך היחידה לגרום למילים להרגיש חשובות." },
-  { start: "האם שמעת על הסופר שהתמכר לספירת תווים?", end: "הוא התחיל לכתוב רק משפטים קצרצרים." },
-  { start: "ספירת תווים", end: "היא כמו לספור קלוריות, רק שבמקום להוריד במשקל, אתה מעלה במילים." },
-  { start: "למה התו הלך לפסיכולוג?", end: "כי הוא הרגיש שהוא לא נספר מספיק." }
-];
+        const funnyMessages = [
+            { start: "ספירת תווים", end: "היא כמו ספירת כבשים, רק שבמקום להירדם, אתה מתעורר לחלוטין!" },
+            { start: "האם ידעת?", end: "המילה 'תו' היא התו הכי קצר בעברית. איזו אירוניה!" },
+            { start: "ספירת תווים:", end: "כי לפעמים גם למילים יש דיאטה." },
+            { start: "תארו לכם עולם בלי ספירת תווים.", end: "טוב, זה בערך כמו לדמיין פיצה בלי גבינה." },
+            { start: "ספירת תווים", end: "היא כמו יוגה למוח שלך. רק בלי המכנסיים המצחיקים." },
+            { start: "למה סופרים תווים?", end: "כי אם היינו סופרים כוכבים, היינו מסיימים רק בשנת 3000." },
+            { start: "ספירת תווים:", end: "הדרך היחידה לגרום למילים להרגיש חשובות." },
+            { start: "האם שמעת על הסופר שהתמכר לספירת תווים?", end: "הוא התחיל לכתוב רק משפטים קצרצרים." },
+            { start: "ספירת תווים", end: "היא כמו לספור קלוריות, רק שבמקום להוריד במשקל, אתה מעלה במילים." },
+            { start: "למה התו הלך לפסיכולוג?", end: "כי הוא הרגיש שהוא לא נספר מספיק." }
+        ];
 
-const TextStatsDashboard = () => {
-  const [text, setText] = useState('');
-  const [stats, setStats] = useState({
-    characters: 0,
-    words: 0,
-    sentences: 0,
-    paragraphs: 0,
-    avgWordLength: 0,
-  });
-  const [funnyMessage, setFunnyMessage] = useState(funnyMessages[0]);
-  const [showAllMessages, setShowAllMessages] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [topWords, setTopWords] = useState([]);
-  const [wordLengthDistribution, setWordLengthDistribution] = useState([]);
+        const TextStatsDashboard = () => {
+            const [text, setText] = useState('');
+            const [stats, setStats] = useState({
+                characters: 0,
+                words: 0,
+                sentences: 0,
+                paragraphs: 0,
+                avgWordLength: 0,
+            });
+            const [funnyMessage, setFunnyMessage] = useState(funnyMessages[0]);
+            const [showAllMessages, setShowAllMessages] = useState(false);
+            const [isTyping, setIsTyping] = useState(false);
+            const [topWords, setTopWords] = useState([]);
+            const [wordLengthDistribution, setWordLengthDistribution] = useState([]);
 
-  useEffect(() => {
-    const characters = text.length;
-    const words = text.trim().split(/\s+/).filter(Boolean);
-    const sentences = text.split(/[.!?]+/).filter(Boolean).length;
-    const paragraphs = text.split(/\n+/).filter(Boolean).length;
-    const avgWordLength = words.length > 0 ? characters / words.length : 0;
+            useEffect(() => {
+                const characters = text.length;
+                const words = text.trim().split(/\s+/).filter(Boolean);
+                const sentences = text.split(/[.!?]+/).filter(Boolean).length;
+                const paragraphs = text.split(/\n+/).filter(Boolean).length;
+                const avgWordLength = words.length > 0 ? characters / words.length : 0;
 
-    setStats({
-      characters,
-      words: words.length,
-      sentences,
-      paragraphs,
-      avgWordLength: avgWordLength.toFixed(2),
-    });
+                setStats({
+                    characters,
+                    words: words.length,
+                    sentences,
+                    paragraphs,
+                    avgWordLength: avgWordLength.toFixed(2),
+                });
 
-    // Calculate top words
-    const wordCounts = {};
-    words.forEach(word => {
-      wordCounts[word] = (wordCounts[word] || 0) + 1;
-    });
-    const sortedWords = Object.entries(wordCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([word, count]) => ({
-        word,
-        count,
-        percentage: ((count / words.length) * 100).toFixed(2)
-      }));
-    setTopWords(sortedWords);
+                // Calculate top words
+                const wordCounts = {};
+                words.forEach(word => {
+                    wordCounts[word] = (wordCounts[word] || 0) + 1;
+                });
+                const sortedWords = Object.entries(wordCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(([word, count]) => ({
+                        word,
+                        count,
+                        percentage: ((count / words.length) * 100).toFixed(2)
+                    }));
+                setTopWords(sortedWords);
 
-    // Calculate word length distribution
-    const lengthDist = {};
-    words.forEach(word => {
-      const length = word.length;
-      lengthDist[length] = (lengthDist[length] || 0) + 1;
-    });
-    const distribution = Object.entries(lengthDist)
-      .map(([length, count]) => ({ length: Number(length), count }))
-      .sort((a, b) => a.length - b.length);
-    setWordLengthDistribution(distribution);
+                // Calculate word length distribution
+                const lengthDist = {};
+                words.forEach(word => {
+                    const length = word.length;
+                    lengthDist[length] = (lengthDist[length] || 0) + 1;
+                });
+                const distribution = Object.entries(lengthDist)
+                    .map(([length, count]) => ({ length: Number(length), count }))
+                    .sort((a, b) => a.length - b.length);
+                setWordLengthDistribution(distribution);
 
-    const randomIndex = Math.floor(Math.random() * funnyMessages.length);
-    setFunnyMessage(funnyMessages[randomIndex]);
-  }, [text]);
+                const randomIndex = Math.floor(Math.random() * funnyMessages.length);
+                setFunnyMessage(funnyMessages[randomIndex]);
+            }, [text]);
 
-  const toggleAllMessages = () => {
-    setShowAllMessages(!showAllMessages);
-  };
+            const toggleAllMessages = () => {
+                setShowAllMessages(!showAllMessages);
+            };
 
-  return (
-    <div className="p-4 max-w-4xl mx-auto" dir="rtl">
-      <h1 className="text-3xl font-bold mb-4 text-center text-purple-600 animate-bounce">דאשבורד ספירת טקסט מתקדם</h1>
-      <textarea
-        className={`w-full h-32 p-2 border-2 rounded-lg mb-4 resize-none transition-all duration-300 ${isTyping ? 'border-green-400 shadow-lg' : 'border-gray-300'}`}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onFocus={() => setIsTyping(true)}
-        onBlur={() => setIsTyping(false)}
-        placeholder="הקלד את הטקסט שלך כאן..."
-      />
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
-        <TextStatsCard title="תווים" value={stats.characters} icon={PenTool} />
-        <TextStatsCard title="מילים" value={stats.words} icon={MessageSquare} />
-        <TextStatsCard title="משפטים" value={stats.sentences} icon={AlignJustify} />
-        <TextStatsCard title="פסקאות" value={stats.paragraphs} icon={Lightbulb} />
-        <TextStatsCard title="אורך מילה ממוצע" value={stats.avgWordLength} icon={BarChart2} />
-      </div>
+            return (
+                <div className="p-4 max-w-4xl mx-auto">
+                    <h1 className="text-3xl font-bold mb-4 text-center text-purple-600 animate-bounce">דאשבורד ספירת טקסט מתקדם</h1>
+                    <textarea
+                        className={`w-full h-32 p-2 border-2 rounded-lg mb-4 resize-none transition-all duration-300 ${isTyping ? 'border-green-400 shadow-lg' : 'border-gray-300'}`}
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        onFocus={() => setIsTyping(true)}
+                        onBlur={() => setIsTyping(false)}
+                        placeholder="הקלד את הטקסט שלך כאן..."
+                    />
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+                        <TextStatsCard title="תווים" value={stats.characters} icon={PenTool} />
+                        <TextStatsCard title="מילים" value={stats.words} icon={MessageSquare} />
+                        <TextStatsCard title="משפטים" value={stats.sentences} icon={AlignJustify} />
+                        <TextStatsCard title="פסקאות" value={stats.paragraphs} icon={Lightbulb} />
+                        <TextStatsCard title="אורך מילה ממוצע" value={stats.avgWordLength} icon={BarChart2} />
+                    </div>
 
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle className="text-center">מילים נפוצות</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="list-disc list-inside">
-            {topWords.map((item, index) => (
-              <li key={index} className="mb-2">
-                <strong>{item.word}</strong>: {item.count} פעמים ({item.percentage}%)
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+                    <Card className="mb-4">
+                        <CardHeader>
+                            <CardTitle className="text-center">מילים נפוצות</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ul className="list-disc list-inside">
+                                {topWords.map((item, index) => (
+                                    <li key={index} className="mb-2">
+                                        <strong>{item.word}</strong>: {item.count} פעמים ({item.percentage}%)
+                                    </li>
+                                ))}
+                            </ul>
+                        </CardContent>
+                    </Card>
 
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle className="text-center">התפלגות אורך מילים</CardTitle>
-        </CardHeader>
-        <CardContent className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={wordLengthDistribution}>
-              <XAxis dataKey="length" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#8884d8" />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+                    <Card className="mb-4">
+                        <CardHeader>
+                            <CardTitle className="text-center">התפלגות אורך מילים</CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={wordLengthDistribution}>
+                                    <XAxis dataKey="length" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Line type="monotone" dataKey="count" stroke="#8884d8" />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
 
-      {!showAllMessages ? (
-        <>
-          <Alert className="text-center mb-2 bg-yellow-100 border-yellow-400">
-            <AlertTitle className="text-lg font-bold mb-2 text-yellow-700">
-              <Lightbulb className="inline mr-2" />
-              עובדה מעניינת על תווים:
-            </AlertTitle>
-            <AlertDescription className="text-yellow-800">
-              <strong>{funnyMessage.start}</strong> {funnyMessage.end}
-            </AlertDescription>
-          </Alert>
-          <div className="text-center mb-4">
-            <Button onClick={toggleAllMessages} className="bg-purple-500 hover:bg-purple-700 transition-colors duration-300">
-              הצג את כל המשפטים
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="text-center mb-4">
-            <Button onClick={toggleAllMessages} className="bg-red-500 hover:bg-red-700 transition-colors duration-300">
-              סגור את כל המשפטים
-            </Button>
-          </div>
-          <div className="grid gap-2">
-            {funnyMessages.map((message, index) => (
-              <Alert key={index} className="text-center bg-gradient-to-r from-blue-100 to-purple-100 border-blue-400 transform hover:scale-105 transition-all duration-300">
-                <AlertDescription className="text-indigo-800">
-                  <strong>{message.start}</strong> {message.end}
-                </AlertDescription>
-              </Alert>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
+                    {!showAllMessages ? (
+                        <>
+                            <Alert className="text-center mb-2 bg-yellow-100 border-yellow-400">
+                                <AlertTitle className="text-lg font-bold mb-2 text-yellow-700">
+                                    <Lightbulb className="inline mr-2" />
+                                    עובדה מעניינת על תווים:
+                                </AlertTitle>
+                                <AlertDescription className="text-yellow-800">
+                                    <strong>{funnyMessage.start}</strong> {funnyMessage.end}
+                                </AlertDescription>
+                            </Alert>
+                            <div className="text-center mb-4">
+                                <Button onClick={toggleAllMessages} className="bg-purple-500 hover:bg-purple-700 transition-colors duration-300">
+                                    הצג את כל המשפטים
+                                </Button>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="text-center mb-4">
+                                <Button onClick={toggleAllMessages} className="bg-red-500 hover:bg-red-700 transition-colors duration-300">
+                                    סגור את כל המשפטים
+                                </Button>
+                            </div>
+                            <div className="grid gap-2">
+                                {funnyMessages.map((message, index) => (
+                                    <Alert key={index} className="text-center bg-gradient-to-r from-blue-100 to-purple-100 border-blue-400 transform hover:scale-105 transition-all duration-300">
+                                        <AlertDescription className="text-indigo-800">
+                                            <strong>{message.start}</strong> {message.end}
+                                        </AlertDescription>
+                                    </Alert>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        };
 
-export default TextStatsDashboard;
+        ReactDOM.render(<TextStatsDashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>
